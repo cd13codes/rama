@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AVL Tree Visualizer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: #1a1a2e;
+            color: #e0e0e0;
+            text-align: center;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #00adb5;
+        }
+
+        .controls {
+            background: #16213e;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            margin: 20px auto;
+            max-width: 800px;
+        }
+
+        input {
+            padding: 12px;
+            margin: 0 10px;
+            width: 100px;
+            border: none;
+            border-radius: 8px;
+            background: #393e46;
+            color: #e0e0e0;
+            font-size: 1rem;
+        }
+
+        input:focus {
+            outline: 2px solid #00adb5;
+        }
+
+        button {
+            padding: 12px 25px;
+            margin: 0 5px;
+            background: #00adb5;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            background: #008a91;
+        }
+
+        #tree-container {
+            position: relative;
+            height: 600px;
+            margin: 20px auto;
+            background: #16213e;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            max-width: 1200px;
+        }
+
+        .node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: absolute;
+            transition: all 0.5s ease;
+        }
+
+        .node-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #00adb5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            position: relative;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .node-circle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .node-circle.highlight {
+            background: #ffd700;
+            color: #16213e;
+        }
+
+        .balance-factor {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            font-size: 0.8rem;
+            background: #393e46;
+            color: white;
+            padding: 3px 6px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .line {
+            position: absolute;
+            height: 2px;
+            background: #393e46;
+            transform-origin: 0 0;
+            transition: all 0.5s ease;
+        }
+
+        .message {
+            margin: 10px auto;
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 800px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .success {
+            background: #16213e;
+            color: #00adb5;
+            border: 1px solid #00adb5;
+        }
+
+        .error {
+            background: #16213e;
+            color: #ff6b6b;
+            border: 1px solid #ff6b6b;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            button {
+                width: 100%;
+                margin: 5px 0;
+            }
+
+            #tree-container {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 class="title">AVL Tree Visualizer</h1>
+    <div class="controls">
+        <input type="number" id="value-input" placeholder="Value">
+        <button onclick="insertNode()">Insert</button>
+        <button onclick="deleteNode()">Delete</button>
+        <button onclick="findNode()">Find</button>
+        <button onclick="resetTree()">Reset</button>
+    </div>
+    <div id="message" class="message"></div>
+    <div id="tree-container"></div>
+
+    <script>
+        class Node {
+            constructor(value) {
+                this.value = value;
+                this.left = null;
+                this.right = null;
+                this.height = 1;
+                this.x = 0;
+                this.y = 0;
+            }
+        }
+
+        class AVLTree {
+            constructor() {
+                this.root = null;
+            }
+
+            height(node) {
+                return node ? node.height : 0;
+            }
+
+            balanceFactor(node) {
+                return node ? this.height(node.left) - this.height(node.right) : 0;
+            }
+
+            updateHeight(node) {
+                if (node) {
+                    node.height = Math.max(this.height(node.left), this.height(node.right)) + 1;
+                }
+            }
+
+            rightRotate(y) {
+                let x = y.left;
+                let T2 = x.right;
+
+                x.right = y;
+                y.left = T2;
+
+                this.updateHeight(y);
+                this.updateHeight(x);
+
+                return x;
+            }
+
+            leftRotate(x) {
+                let y = x.right;
+                let T2 = y.left;
+
+                y.left = x;
+                x.right = T2;
+
+                this.updateHeight(x);
+                this.updateHeight(y);
+
+                return y;
+            }
+
+            insert(value) {
+                this.root = this._insert(this.root, value);
+            }
+
+            _insert(node, value) {
+                if (!node) return new Node(value);
+
+                if (value < node.value)
+                    node.left = this._insert(node.left, value);
+                else if (value > node.value)
+                    node.right = this._insert(node.right, value);
+                else
+                    return node;
+
+                this.updateHeight(node);
+
+                let balance = this.balanceFactor(node);
+
+                // Left Left Case
+                if (balance > 1 && value < node.left.value)
+                    return this.rightRotate(node);
+
+                // Right Right Case
+                if (balance < -1 && value > node.right.value)
+                    return this.leftRotate(node);
+
+                // Left Right Case
+                if (balance > 1 && value > node.left.value) {
+                    node.left = this.leftRotate(node.left);
+                    return this.rightRotate(node);
+                }
+
+                // Right Left Case
+                if (balance < -1 && value < node.right.value) {
+                    node.right = this.rightRotate(node.right);
+                    return this.leftRotate(node);
+                }
+
+                return node;
+            }
+
+            find(value) {
+                return this._find(this.root, value);
+            }
+
+            _find(node, value) {
+                if (!node) return null;
+                
+                if (value === node.value) return node;
+                if (value < node.value) return this._find(node.left, value);
+                return this._find(node.right, value);
+            }
+
+            minValueNode(node) {
+                let current = node;
+                while (current.left) {
+                    current = current.left;
+                }
+                return current;
+            }
+
+            delete(value) {
+                this.root = this._delete(this.root, value);
+            }
+
+            _delete(node, value) {
+                if (!node) return null;
+
+                if (value < node.value)
+                    node.left = this._delete(node.left, value);
+                else if (value > node.value)
+                    node.right = this._delete(node.right, value);
+                else {
+                    // Node with only one child or no child
+                    if (!node.left) return node.right;
+                    if (!node.right) return node.left;
+
+                    // Node with two children
+                    let temp = this.minValueNode(node.right);
+                    node.value = temp.value;
+                    node.right = this._delete(node.right, temp.value);
+                }
+
+                if (!node) return null;
+
+                this.updateHeight(node);
+
+                let balance = this.balanceFactor(node);
+
+                // Left Left Case
+                if (balance > 1 && this.balanceFactor(node.left) >= 0)
+                    return this.rightRotate(node);
+
+                // Left Right Case
+                if (balance > 1 && this.balanceFactor(node.left) < 0) {
+                    node.left = this.leftRotate(node.left);
+                    return this.rightRotate(node);
+                }
+
+                // Right Right Case
+                if (balance < -1 && this.balanceFactor(node.right) <= 0)
+                    return this.leftRotate(node);
+
+                // Right Left Case
+                if (balance < -1 && this.balanceFactor(node.right) > 0) {
+                    node.right = this.rightRotate(node.right);
+                    return this.leftRotate(node);
+                }
+
+                return node;
+            }
+        }
+
+        let tree = new AVLTree();
+        const container = document.getElementById('tree-container');
+        const messageDiv = document.getElementById('message');
+        const nodeSpacing = 60;
+        const levelHeight = 80;
+
+        function showMessage(text, isError = false) {
+            messageDiv.textContent = text;
+            messageDiv.style.display = 'block';
+            messageDiv.className = `message ${isError ? 'error' : 'success'}`;
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function updatePositions(node, level = 0, position = 0, leftBound = 0, rightBound = container.offsetWidth) {
+            if (!node) return;
+
+            const width = rightBound - leftBound;
+            const x = leftBound + width / 2;
+            const y = level * levelHeight + 40;
+
+            node.x = x;
+            node.y = y;
+
+            const nextWidth = width / 2;
+            updatePositions(node.left, level + 1, position * 2, leftBound, x);
+            updatePositions(node.right, level + 1, position * 2 + 1, x, rightBound);
+        }
+
+        function drawLine(x1, y1, x2, y2) {
+            const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+
+            const line = document.createElement('div');
+            line.className = 'line';
+            line.style.width = `${length}px`;
+            line.style.left = `${x1}px`;
+            line.style.top = `${y1}px`;
+            line.style.transform = `rotate(${angle}deg)`;
+
+            return line;
+        }
+
+        function drawTree(highlightValue = null) {
+            container.innerHTML = '';
+            
+            function draw(node) {
+                if (!node) return;
+
+                if (node.left) {
+                    container.appendChild(drawLine(node.x + 20, node.y + 20, node.left.x + 20, node.left.y + 20));
+                }
+                if (node.right) {
+                    container.appendChild(drawLine(node.x + 20, node.y + 20, node.right.x + 20, node.right.y + 20));
+                }
+
+                const nodeDiv = document.createElement('div');
+                nodeDiv.className = 'node';
+                nodeDiv.style.left = `${node.x}px`;
+                nodeDiv.style.top = `${node.y}px`;
+
+                const circle = document.createElement('div');
+                circle.className = `node-circle ${node.value === highlightValue ? 'highlight' : ''}`;
+                circle.textContent = node.value;
+
+                const balanceFactor = document.createElement('div');
+                balanceFactor.className = 'balance-factor';
+                balanceFactor.textContent = tree.balanceFactor(node);
+
+                circle.appendChild(balanceFactor);
+                nodeDiv.appendChild(circle);
+                container.appendChild(nodeDiv);
+
+                draw(node.left);
+                draw(node.right);
+            }
+
+            updatePositions(tree.root);
+            draw(tree.root);
+        }
+
+        function insertNode() {
+            const input = document.getElementById('value-input');
+            const value = parseInt(input.value);
+            
+            if (!isNaN(value)) {
+                tree.insert(value);
+                drawTree();
+                input.value = '';
+                showMessage(`Inserted node: ${value}`);
+            }
+        }
+
+        function deleteNode() {
+            const input = document.getElementById('value-input');
+            const value = parseInt(input.value);
+            
+            if (!isNaN(value)) {
+                const node = tree.find(value);
+                if (node) {
+                    tree.delete(value);
+                    drawTree();
+                    input.value = '';
+                    showMessage(`Deleted node: ${value}`);
+                } else {
+                    showMessage(`Node ${value} not found`, true);
+                }
+            }
+        }
+
+        function findNode() {
+            const input = document.getElementById('value-input');
+            const value = parseInt(input.value);
+            
+            if (!isNaN(value)) {
+                const node = tree.find(value);
+                if (node) {
+                    drawTree(value);
+                    showMessage(`Found node: ${value}`);
+                } else {
+                    showMessage(`Node ${value} not found`, true);
+                }
+            }
+        }
+
+        function resetTree() {
+            tree = new AVLTree();
+            container.innerHTML = '';
+            document.getElementById('value-input').value = '';
+            showMessage('Tree reset');
+        }
+
+        document.getElementById('value-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                insertNode();
+            }
+        });
+    </script>
+</body>
+</html>
