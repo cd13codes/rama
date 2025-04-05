@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discover Algo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: Arial, sans-serif;
+            color: #83c6c8;
+            text-align: center;
+            overflow: hidden;
+            background-color: #83c6c8; /* Start with your scheme color */
+            opacity: 0; /* Initially hidden */
+            animation: fadeIn 3s forwards; /* Apply the fade-in effect */
+        }
+
+        /* Fade-In Animation */
+        @keyframes fadeIn {
+            0% {
+                background-color: #83c6c8; /* Start from your scheme color */
+                opacity: 0; /* Start invisible */
+            }
+            100% {
+                background-color: transparent; /* End with transparent background */
+                opacity: 1; /* End fully visible */
+            }
+        }
+
+        /* Background Image with Blur and Animation */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('CoverPage.jpeg') no-repeat center center/cover;
+            filter: blur(7px); 
+            z-index: -1;
+            animation: moveBackground 60s linear infinite;
+        }
+
+        /* Keyframes for slow-moving background */
+        @keyframes moveBackground {
+            0% {
+                background-position: 0 0;
+            }
+            100% {
+                background-position: 100% 100%;
+            }
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5); 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 4rem;
+            background: linear-gradient( #f9fafa, #02f6fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 2rem;
+            color: #a6f9fa;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background-color: #003237;
+            color: #ffffff;
+            padding: 15px 12px;
+            font-size: 1.4rem;
+            border-color: #00bbcc;
+            border-style: groove;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #005b64;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay">
+        <h1>AlgoQuest</h1>
+        <h2>Game Your Way to Algorithm Mastery!</h2>
+        <form action="HomePage.html">
+            <button type="submit" class="btn btn-primary">Game Now!</button>
+        </form>
+        
+
+    </div>
+</body>
+</html>
